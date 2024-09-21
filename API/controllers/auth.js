@@ -2,7 +2,6 @@ import {db} from "../db.js";
 import bcrypt from "bcryptjs";
 
 export const register = (req,res) => {
-    // Check existing user
 
     const q = "SELECT * FROM users WHERE email = ? OR username = ?"
 
@@ -37,3 +36,4 @@ export const login = (req,res) => {
 export const logout = (req,res) => {
     
 }
+
