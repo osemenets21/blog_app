@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 
 const Register = () => {
   const [inputs, setInputs] = useState({
@@ -17,11 +16,29 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:8800/api/auth/register", inputs);
-      console.log(res);
-      
+      const response = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: inputs.username,
+          email: inputs.email,      
+          password: inputs.password,  
+        }),
+      });
+
+      console.log(response);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Successful registration:", data); 
+      } else {
+        const errorData = await response.json();
+        console.log("Registration error:", errorData.message); 
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Registration error:", error);
     }
   };
 
@@ -31,23 +48,26 @@ const Register = () => {
       <form>
         <input
           type="text"
-          placeholder="username"
+          placeholder="Username"
           name="username"
           onChange={handleChange}
+          required 
         />
         <input
           type="email"
-          placeholder="email"
+          placeholder="Email"
           name="email"
           onChange={handleChange}
+          required 
         />
         <input
           type="password"
-          placeholder="password"
+          placeholder="Password"
           name="password"
           onChange={handleChange}
+          required 
         />
-        <button onClick={handleSubmit}>Register</button>
+        <button type="submit" onClick={handleSubmit}>Register</button> 
         <p>This is an error!</p>
         <span>
           Do you have an account? <Link to="/login">Login</Link>
