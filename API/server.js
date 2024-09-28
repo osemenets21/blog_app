@@ -20,6 +20,7 @@ db.serialize(() => {
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
+            email TEXT,
             password TEXT
         )
     `);
@@ -52,12 +53,26 @@ function verifyToken(req, res, next) {
     });
 }
 
-app.post('/register', (req, res) => {
-    const { username, password } = req.body;
-    const hashedPassword = hashSync(password, 8);
+// app.post('/register', (req, res) => {
+//     const { username, password } = req.body;
+//     const hashedPassword = hashSync(password, 8);
 
-    const query = 'INSERT INTO users (username, password) VALUES (?, ?)';
-    db.run(query, [username, hashedPassword], function (err) {
+//     const query = 'INSERT INTO users (username, password) VALUES (?, ?)';
+//     db.run(query, [username, hashedPassword], function (err) {
+//         if (err) {
+//             return res.status(500).send({ message: 'User already exists' });
+//         }
+//         res.status(200).send({ message: 'User registered!' });
+//     });
+// });
+
+app.post('/register', (req, res) => {
+    const { username, email, password } = req.body;  
+    const hashedPassword = hashSync(password, 8);  
+
+    const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+    
+    db.run(query, [username, email, hashedPassword], function (err) {
         if (err) {
             return res.status(500).send({ message: 'User already exists' });
         }

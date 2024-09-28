@@ -23,19 +23,17 @@ const Register = () => {
         },
         body: JSON.stringify({
           username: inputs.username,
-          email: inputs.email,      
-          password: inputs.password,  
+          email: inputs.email,
+          password: inputs.password,
         }),
       });
 
-      console.log(response);
-
       if (response.ok) {
         const data = await response.json();
-        console.log("Successful registration:", data); 
+        console.log("Successful registration:", data);
       } else {
         const errorData = await response.json();
-        console.log("Registration error:", errorData.message); 
+        console.log("Registration error:", errorData.message);
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -51,23 +49,25 @@ const Register = () => {
           placeholder="Username"
           name="username"
           onChange={handleChange}
-          required 
+          required
         />
         <input
           type="email"
           placeholder="Email"
           name="email"
           onChange={handleChange}
-          required 
+          required
         />
         <input
           type="password"
           placeholder="Password"
           name="password"
           onChange={handleChange}
-          required 
+          required
         />
-        <button type="submit" onClick={handleSubmit}>Register</button> 
+        <button type="submit" onClick={handleSubmit}>
+          Register
+        </button>
         <p>This is an error!</p>
         <span>
           Do you have an account? <Link to="/login">Login</Link>
