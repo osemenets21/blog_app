@@ -3,7 +3,10 @@ import sqlite3 from 'sqlite3';
 import cors from 'cors';
 // import bodyParser from 'body-parser';
 import pkg from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 const { hashSync, compareSync } = pkg; 
+import jwt from 'jsonwebtoken'; // Use the default import for CommonJS
+const { sign, verify } = jwt;    // Destructure the sign and verify functions
 // import authRoutes from './routes/authRoutes.js';
 // import postRoutes from './routes/postRoutes.js';
 
@@ -85,7 +88,7 @@ app.post('/login', (req, res) => {
 
     const query = 'SELECT * FROM users WHERE username = ?';
     db.get(query, [username], (err, user) => {
-        if (!user || !compareSync(password, user.password)) {
+        if (!user || !bcrypt.compareSync(password, user.password)) {
             return res.status(401).send({ message: 'Invalid login or password' });
         }
 
@@ -93,6 +96,7 @@ app.post('/login', (req, res) => {
         res.status(200).send({ token });
     });
 });
+
 
 
 app.post('/posts', verifyToken, (req, res) => {

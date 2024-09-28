@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [inputs, setInputs] = useState({
@@ -7,6 +7,10 @@ const Register = () => {
     email: "",
     password: "",
   });
+
+  const [err, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,15 +32,16 @@ const Register = () => {
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Successful registration:", data);
-      } else {
-        const errorData = await response.json();
-        console.log("Registration error:", errorData.message);
+
+      if (!response.ok) {
+        const errorData = await response.json(); 
+        throw new Error(errorData.message || "Registration failed");
       }
-    } catch (error) {
-      console.error("Registration error:", error);
+
+      navigate('/login')
+
+    } catch (err) {
+      setError(err.message); 
     }
   };
 
@@ -68,7 +73,7 @@ const Register = () => {
         <button type="submit" onClick={handleSubmit}>
           Register
         </button>
-        <p>This is an error!</p>
+        {err && <p>{err}</p>}
         <span>
           Do you have an account? <Link to="/login">Login</Link>
         </span>
