@@ -12,11 +12,13 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));    
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("Submitting login:", inputs);
 
     try {
       const response = await fetch("http://localhost:5000/login", {
@@ -29,14 +31,19 @@ const Login = () => {
           password: inputs.password,
         }),
       });
+       
 
-      
+      // const datra = await response.json();
+      // console.log('Server response:', datra);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
+        throw new Error(errorData.message || "Login failed");
       }
 
+      const data = await response.json();
+
+      localStorage.setItem("token", data.token);
       navigate("/");
     } catch (err) {
       setError(err.message);
