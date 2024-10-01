@@ -70,41 +70,84 @@ app.post("/register", (req, res) => {
   });
 });
 
-app.post('/login', (req, res) => {
-    console.log('Request body:', req.body);
-  
-    const { username, password } = req.body;
+// app.post('/login', (req, res) => {
 
-    console.log("password", password);
+//     console.log('Request body:', req.body);
+  
+//     const { username, password } = req.body;
+
+//     console.log("password", password);
     
   
-    if (!username || !password) {
-      console.log('Missing username or password');
-      return res.status(400).json({ message: 'Username and password are required' });
-    }
+//     if (!username || !password) {
+//       console.log('Missing username or password');
+//       return res.status(400).json({ message: 'Username and password are required' });
+//     }
   
-    db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
-      if (err) {
-        console.log('Database error:', err);
-        return res.status(500).json({ message: 'Server error' });
-      }
+//     db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
+//       if (err) {
+//         console.log('Database error:', err);
+//         return res.status(500).json({ message: 'Server error' });
+//       }
   
-      if (!user) {
-        console.log('User not found');
-        return res.status(400).json({ message: 'Invalid username or password' });
-      }
+//       if (!user) {
+//         console.log('User not found');
+//         return res.status(400).json({ message: 'Invalid username or password' });
+//       }
   
-      if (password !== user.password) {
-        console.log('Invalid password');
-        return res.status(400).json({ message: 'Invalid username or password' });
-      }
+//       if (password !== user.password) {
+//         console.log('Invalid password');
+//         return res.status(400).json({ message: 'Invalid username or password' });
+//       }
   
-      const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+//       const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
 
-      console.log('Login successful');
-      return res.status(200).json({ message: 'Login successful', token: token });
-    });
+//       console.log('Login successful');
+//       return res.status(200).json({ message: 'Login successful', token: token });
+//     });
+//   });
+
+app.post('/login', (req, res) => {
+  console.log('Request body:', req.body);
+  
+  const { username, password } = req.body;
+  
+  console.log("Received username:", username);
+  console.log("Received password:", password);
+
+  if (!username || !password) {
+    console.log('Missing username or password');
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
+  // Retrieve the user from the database based on the username
+  db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
+    if (err) {
+      console.log('Database error:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (!user) {
+      console.log('User not found');
+      return res.status(400).json({ message: 'Invalid username or password' });
+    }
+
+    console.log("Stored hashed password:", user.password);
+
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+
+    if (!isPasswordValid) {
+      console.log('Invalid password');
+      return res.status(400).json({ message: 'Invalid username or password' });
+    }
+
+    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+
+    console.log('Login successful');
+    return res.status(200).json({ message: 'Login successful', token: token });
   });
+});
+
 
 app.post("/posts", verifyToken, (req, res) => {
   const { title, content } = req.body;
@@ -159,3 +202,4 @@ app.delete("/posts/:id", verifyToken, (req, res) => {
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);
 });
+
