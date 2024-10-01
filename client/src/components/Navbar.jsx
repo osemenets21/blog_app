@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import Logo from "../img/logo.png";
 import { Link } from "react-router-dom";
-import { AuthContext } from "../context/authContext";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { AuthContext } from "../context/AuthContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 const Navbar = () => {
   const { currentUser, logout } = useContext(AuthContext);
@@ -43,7 +43,10 @@ const Navbar = () => {
 
           {currentUser && ( // Додаємо умову для відображення іконки
             <span>
-              <FontAwesomeIcon icon={faUser} style={{ color: "#b9e7e7", marginRight: "5px" }} />
+              <FontAwesomeIcon
+                icon={faUser}
+                style={{ color: "#b9e7e7", marginRight: "5px" }}
+              />
               {currentUser.username} {/* Показуємо ім'я користувача */}
             </span>
           )}

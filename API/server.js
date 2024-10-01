@@ -35,6 +35,7 @@ db.serialize(() => {
       date TEXT,
       uid INTEGER,
       cat TEXT,
+      username TEXT,
       FOREIGN KEY(uid) REFERENCES users(id)
   )`,
     (err) => {
@@ -149,6 +150,27 @@ app.get("/posts", (req, res) => {
     res.status(200).json(rows);
   });
 });
+
+app.get('/post/:id', (req, res) => {
+  const { id } = req.params; // Get the id from the request parameters
+
+  // SQL query to fetch a post by id
+  const query = 'SELECT * FROM posts WHERE id = ?';
+
+  db.get(query, [id], (err, row) => {
+    if (err) {
+      console.error('Database error:', err); // Log the error
+      return res.status(500).json({ message: 'Database error', error: err.message }); // Return detailed error
+    }
+
+    if (!row) {
+      return res.status(404).json({ message: 'Post not found' }); // Return 404 if no post is found
+    }
+
+    res.status(200).json(row); // Return the found post
+  });
+});
+
 
 // app.post("/posts", verifyToken, (req, res) => {
 //   const { title, content } = req.body;

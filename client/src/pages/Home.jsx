@@ -4,9 +4,9 @@ import { Link, useLocation } from "react-router-dom";
 const Home = () => {
   const [posts, setPosts] = useState([]);
 
-  const location = useLocation(); // Отримуємо об'єкт location
-  const queryParams = new URLSearchParams(location.search); // Створюємо об'єкт URLSearchParams
-  const cat = queryParams.get("cat"); // Отримуємо значення cat
+  const location = useLocation(); 
+  const queryParams = new URLSearchParams(location.search); 
+  const cat = queryParams.get("cat"); 
 
   useEffect(() => {
     const fetchData = async () => {

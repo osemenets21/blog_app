@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
 
@@ -6,6 +7,8 @@ export const AuthContexProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem("user")) || null
   );
+
+  // const navigate = useNavigate(); // Викликаємо useNavigate всередині компонента
 
   const login = async (inputs) => {
     const response = await fetch("http://localhost:5000/login", {
@@ -33,8 +36,13 @@ export const AuthContexProvider = ({ children }) => {
           username: inputs.username,
           password: inputs.password
         })
-      );
-      
+    );
+    
+    setCurrentUser({
+      token: data.token,
+      username: inputs.username,
+      password: inputs.password,
+    });
   };
 
   const logout = async () => {
@@ -52,15 +60,15 @@ export const AuthContexProvider = ({ children }) => {
       }
   
       localStorage.removeItem("user");
-       
       setCurrentUser(null);
   
       console.log("Logout successful");
+      // navigate("/"); // Навігація після успішного виходу
+
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
-  
 
   useEffect(() => {
     localStorage.setItem("user", JSON.stringify(currentUser));

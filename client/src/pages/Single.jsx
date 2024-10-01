@@ -1,41 +1,66 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Edit from "../img/edit.png";
 import Delete from "../img/delete.png";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Menu from "../components/Menu";
+import moment from "moment";
+import { AuthContext } from "../context/AuthContext";
 
 const Single = () => {
+  const [post, setPost] = useState({});
+
+  const location = useLocation();
+  const postId = location.pathname.split("/")[2];
+
+  const { currentUser } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/post/${postId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch posts");
+        }
+        const data = await response.json();
+        setPost(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  }, [postId]);
+
   return (
     <div className="single">
       <div className="content">
-        <img
-          src="https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*"
-          alt="singl-photo"
-        />
-        <div className="user">
-          <img
-            src="https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*"
-            alt="singl"
-          />
-          <div className="info">
-            <span>John</span>
-            <p>Posted 2 days ago</p>
+        <img src={post?.img} alt="single-photo" />
+
+        {currentUser && (
+          <div className="user">
+            <img
+              src="https://icons.veryicon.com/png/o/miscellaneous/user-avatar/user-avatar-male-5.png"
+              alt="single-user"
+            />
+            <div className="info">
+              <span>{post.username}</span>
+              <p>Posted {moment(post.date).fromNow()}</p>
+            </div>
+            {currentUser?.username === post?.username && (
+              <div className="edit">
+                <Link to={"/write?edit=2"}>
+                  <img src={Edit} alt="edit-img" />
+                </Link>
+                <img src={Delete} alt="delete-img" />
+              </div>
+            )}
           </div>
-          <div className="edit">
-            <Link to={"/write?edit=2"}>
-              <img src={Edit} alt="edit-img" />
-            </Link>
-            <img src={Delete} alt="delete-img" />
-          </div>
-        </div>
-        <h1>
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Beatae est
-          itaque unde mollitia odio! Minus quos perferendis cupiditate qui
-          tenetur?
-        </h1>
-        <p></p>
+        )}
+
+        <h1>{post.title}</h1>
+        <p>{post.desc}</p>
       </div>
-      <Menu/>
+      <Menu />
     </div>
   );
 };
