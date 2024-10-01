@@ -10,8 +10,8 @@ const { sign, verify } = jwt;
 
 
 const app = express();
-
 app.use(cors());
+
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = "your_secret_key";
 
@@ -27,33 +27,34 @@ db.serialize(() => {
         )
     `);
 
-  db.run(`
-        CREATE TABLE IF NOT EXISTS posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            content TEXT,
-            user_id INTEGER,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-    `);
+    db.run(`
+      CREATE TABLE IF NOT EXISTS posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT,
+          content TEXT,
+          category TEXT,
+          user_id INTEGER,
+          FOREIGN KEY(user_id) REFERENCES users(id)
+      )
+  `);
 });
 
 app.use(express.json());
 
-function verifyToken(req, res, next) {
-  const token = req.headers["authorization"];
-  if (!token) {
-    return res.status(403).send({ message: "No token provided" });
-  }
+// function verifyToken(req, res, next) {
+//   const token = req.headers["authorization"];
+//   if (!token) {
+//     return res.status(403).send({ message: "No token provided" });
+//   }
 
-  verify(token, SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(500).send({ message: "Invalid token" });
-    }
-    req.userId = decoded.id;
-    next();
-  });
-}
+//   verify(token, SECRET_KEY, (err, decoded) => {
+//     if (err) {
+//       return res.status(500).send({ message: "Invalid token" });
+//     }
+//     req.userId = decoded.id;
+//     next();
+//   });
+// }
 
 app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
@@ -70,57 +71,18 @@ app.post("/register", (req, res) => {
   });
 });
 
-// app.post('/login', (req, res) => {
 
-//     console.log('Request body:', req.body);
-  
-//     const { username, password } = req.body;
-
-//     console.log("password", password);
-    
-  
-//     if (!username || !password) {
-//       console.log('Missing username or password');
-//       return res.status(400).json({ message: 'Username and password are required' });
-//     }
-  
-//     db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
-//       if (err) {
-//         console.log('Database error:', err);
-//         return res.status(500).json({ message: 'Server error' });
-//       }
-  
-//       if (!user) {
-//         console.log('User not found');
-//         return res.status(400).json({ message: 'Invalid username or password' });
-//       }
-  
-//       if (password !== user.password) {
-//         console.log('Invalid password');
-//         return res.status(400).json({ message: 'Invalid username or password' });
-//       }
-  
-//       const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
-
-//       console.log('Login successful');
-//       return res.status(200).json({ message: 'Login successful', token: token });
-//     });
-//   });
 
 app.post('/login', (req, res) => {
   console.log('Request body:', req.body);
   
   const { username, password } = req.body;
-  
-  console.log("Received username:", username);
-  console.log("Received password:", password);
 
   if (!username || !password) {
     console.log('Missing username or password');
     return res.status(400).json({ message: 'Username and password are required' });
   }
 
-  // Retrieve the user from the database based on the username
   db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
     if (err) {
       console.log('Database error:', err);
@@ -149,55 +111,61 @@ app.post('/login', (req, res) => {
 });
 
 
-app.post("/posts", verifyToken, (req, res) => {
-  const { title, content } = req.body;
-  const query = "INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)";
-
-  db.run(query, [title, content, req.userId], function (err) {
-    if (err) {
-      return res.status(500).send({ message: "Помилка при створенні поста" });
-    }
-    res.status(200).send({ id: this.lastID, message: "Пост створено" });
-  });
+app.post('/logout', (req, res) => {
+  return res.status(200).json({ message: 'Logout successful' });
 });
 
-app.get("/posts", (req, res) => {
-  const query =
-    "SELECT posts.id, posts.title, posts.content, users.username FROM posts INNER JOIN users ON posts.user_id = users.id";
+export default app;
 
-  db.all(query, [], (err, posts) => {
-    if (err) {
-      return res.status(500).send({ message: "Error while receiving posts" });
-    }
-    res.status(200).send(posts);
-  });
-});
+// app.post("/posts", verifyToken, (req, res) => {
+//   const { title, content } = req.body;
+//   const query = "INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)";
 
-app.put("/posts/:id", verifyToken, (req, res) => {
-  const { title, content } = req.body;
-  const query =
-    "UPDATE posts SET title = ?, content = ? WHERE id = ? AND user_id = ?";
+//   db.run(query, [title, content, req.userId], function (err) {
+//     if (err) {
+//       return res.status(500).send({ message: "Помилка при створенні поста" });
+//     }
+//     res.status(200).send({ id: this.lastID, message: "Пост створено" });
+//   });
+// });
 
-  db.run(query, [title, content, req.params.id, req.userId], function (err) {
-    if (err || this.changes === 0) {
-      return res
-        .status(500)
-        .send({ message: "Error editing or post not found" });
-    }
-    res.status(200).send({ message: "The post has been updated" });
-  });
-});
+// app.get("/posts", (req, res) => {
+//   const query =
+//     "SELECT posts.id, posts.title, posts.content, users.username FROM posts INNER JOIN users ON posts.user_id = users.id";
 
-app.delete("/posts/:id", verifyToken, (req, res) => {
-  const query = "DELETE FROM posts WHERE id = ? AND user_id = ?";
+//   db.all(query, [], (err, posts) => {
+//     if (err) {
+//       return res.status(500).send({ message: "Error while receiving posts" });
+//     }
+//     res.status(200).send(posts);
+//   });
+// });
 
-  db.run(query, [req.params.id, req.userId], function (err) {
-    if (err || this.changes === 0) {
-      return res.status(500).send({ message: "Error or post not found" });
-    }
-    res.status(200).send({ message: "The post has been deleted" });
-  });
-});
+// app.put("/posts/:id", verifyToken, (req, res) => {
+//   const { title, content } = req.body;
+//   const query =
+//     "UPDATE posts SET title = ?, content = ? WHERE id = ? AND user_id = ?";
+
+//   db.run(query, [title, content, req.params.id, req.userId], function (err) {
+//     if (err || this.changes === 0) {
+//       return res
+//         .status(500)
+//         .send({ message: "Error editing or post not found" });
+//     }
+//     res.status(200).send({ message: "The post has been updated" });
+//   });
+// });
+
+// app.delete("/posts/:id", verifyToken, (req, res) => {
+//   const query = "DELETE FROM posts WHERE id = ? AND user_id = ?";
+
+//   db.run(query, [req.params.id, req.userId], function (err) {
+//     if (err || this.changes === 0) {
+//       return res.status(500).send({ message: "Error or post not found" });
+//     }
+//     res.status(200).send({ message: "The post has been deleted" });
+//   });
+// });
 
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);
