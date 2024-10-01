@@ -15,7 +15,7 @@ app.use(cors());
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = "your_secret_key";
 
-const db = new sqlite3.Database("./database.db");
+export const db = new sqlite3.Database("./database.db");
 
 db.serialize(() => {
   db.run(`
@@ -116,6 +116,18 @@ app.post('/logout', (req, res) => {
 });
 
 export default app;
+
+app.get('/posts', (req, res) => {
+  db.all('SELECT * FROM posts', [], (err, rows) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(rows); // Return posts as a JSON array
+  });
+});
+
+
 
 // app.post("/posts", verifyToken, (req, res) => {
 //   const { title, content } = req.body;
