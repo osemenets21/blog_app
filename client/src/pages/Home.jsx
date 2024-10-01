@@ -1,24 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
 
+  const location = useLocation(); // Отримуємо об'єкт location
+  const queryParams = new URLSearchParams(location.search); // Створюємо об'єкт URLSearchParams
+  const cat = queryParams.get("cat"); // Отримуємо значення cat
+
   useEffect(() => {
-    const fetchData = async ()=> {
+    const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/posts'); // Ensure this matches your API URL
+        const response = await fetch(
+          `http://localhost:5000/posts${cat ? `?cat=${cat}` : ""}`
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch posts');
+          throw new Error("Failed to fetch posts");
         }
         const data = await response.json();
         setPosts(data);
       } catch (error) {
         console.log(error);
       }
-    }
+    };
+
     fetchData();
-  }, []);
+  }, [cat]);
 
   return (
     <div className="home">

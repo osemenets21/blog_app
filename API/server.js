@@ -5,9 +5,8 @@ import cors from "cors";
 import pkg from "bcryptjs";
 import bcrypt from "bcryptjs";
 const { hashSync, compareSync } = pkg;
-import jwt from "jsonwebtoken"; 
-const { sign, verify } = jwt; 
-
+import jwt from "jsonwebtoken";
+const { sign, verify } = jwt;
 
 const app = express();
 app.use(cors());
@@ -27,16 +26,25 @@ db.serialize(() => {
         )
     `);
 
-    db.run(`
-      CREATE TABLE IF NOT EXISTS posts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT,
-          content TEXT,
-          category TEXT,
-          user_id INTEGER,
-          FOREIGN KEY(user_id) REFERENCES users(id)
-      )
-  `);
+  db.run(
+    `CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT,
+      desc TEXT,
+      img TEXT,
+      date TEXT,
+      uid INTEGER,
+      cat TEXT,
+      FOREIGN KEY(uid) REFERENCES users(id)
+  )`,
+    (err) => {
+      if (err) {
+        console.error("Error creating table:", err.message);
+      } else {
+        console.log("Posts table created successfully or already exists.");
+      }
+    }
+  );
 });
 
 app.use(express.json());
@@ -71,27 +79,27 @@ app.post("/register", (req, res) => {
   });
 });
 
+app.post("/login", (req, res) => {
+  console.log("Request body:", req.body);
 
-
-app.post('/login', (req, res) => {
-  console.log('Request body:', req.body);
-  
   const { username, password } = req.body;
 
   if (!username || !password) {
-    console.log('Missing username or password');
-    return res.status(400).json({ message: 'Username and password are required' });
+    console.log("Missing username or password");
+    return res
+      .status(400)
+      .json({ message: "Username and password are required" });
   }
 
-  db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
+  db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
     if (err) {
-      console.log('Database error:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.log("Database error:", err);
+      return res.status(500).json({ message: "Server error" });
     }
 
     if (!user) {
-      console.log('User not found');
-      return res.status(400).json({ message: 'Invalid username or password' });
+      console.log("User not found");
+      return res.status(400).json({ message: "Invalid username or password" });
     }
 
     console.log("Stored hashed password:", user.password);
@@ -99,35 +107,48 @@ app.post('/login', (req, res) => {
     const isPasswordValid = bcrypt.compareSync(password, user.password);
 
     if (!isPasswordValid) {
-      console.log('Invalid password');
-      return res.status(400).json({ message: 'Invalid username or password' });
+      console.log("Invalid password");
+      return res.status(400).json({ message: "Invalid username or password" });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
 
-    console.log('Login successful');
-    return res.status(200).json({ message: 'Login successful', token: token });
+    console.log("Login successful");
+    return res.status(200).json({ message: "Login successful", token: token });
   });
 });
 
-
-app.post('/logout', (req, res) => {
-  return res.status(200).json({ message: 'Logout successful' });
+app.post("/logout", (req, res) => {
+  return res.status(200).json({ message: "Logout successful" });
 });
 
 export default app;
 
-app.get('/posts', (req, res) => {
-  db.all('SELECT * FROM posts', [], (err, rows) => {
+app.get("/posts", (req, res) => {
+  const { cat } = req.query;
+
+  let query = "SELECT * FROM posts";
+  const params = [];
+
+  if (cat) {
+    query += " WHERE cat = ?";
+    params.push(cat);
+  }
+
+  db.all(query, params, (err, rows) => {
     if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ message: 'Database error' });
+      console.error("Database error:", err); // Логування помилки
+      return res
+        .status(500)
+        .json({ message: "Database error", error: err.message }); // Повернення детальної помилки
     }
-    res.status(200).json(rows); // Return posts as a JSON array
+    res.status(200).json(rows);
   });
 });
-
-
 
 // app.post("/posts", verifyToken, (req, res) => {
 //   const { title, content } = req.body;
@@ -182,4 +203,3 @@ app.get('/posts', (req, res) => {
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);
 });
-
