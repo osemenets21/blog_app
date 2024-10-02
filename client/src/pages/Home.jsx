@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";  // Імпортуємо контекст
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
-
   const location = useLocation(); 
   const queryParams = new URLSearchParams(location.search); 
   const cat = queryParams.get("cat"); 
+
+  const { message, setMessage } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,8 +29,24 @@ const Home = () => {
     fetchData();
   }, [cat]);
 
+  // Таймер для автоматичного приховування повідомлення через 5 секунд
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage(""); // Очищаємо повідомлення через 5 секунд
+      }, 5000);
+
+      return () => clearTimeout(timer); // Очищуємо таймер, якщо компонент буде розмонтований
+    }
+  }, [message, setMessage]);
+
   return (
     <div className="home">
+      {message && ( 
+        <div className="notification">
+          <p>{message}</p>
+        </div>
+      )}
       <div className="posts">
         {posts.map((post) => (
           <div className="post" key={post.id}>
@@ -36,7 +54,7 @@ const Home = () => {
               <img src={post.img} alt="post-img" />
             </div>
             <div className="content">
-              <Link className="link">
+              <Link className="link" to={`/post/${post.id}`}>
                 <h1>{post.title}</h1>
                 <p>{post.desc}</p>
                 <button>Read more</button>
@@ -50,3 +68,4 @@ const Home = () => {
 };
 
 export default Home;
+

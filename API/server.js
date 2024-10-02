@@ -50,20 +50,7 @@ db.serialize(() => {
 
 app.use(express.json());
 
-// function verifyToken(req, res, next) {
-//   const token = req.headers["authorization"];
-//   if (!token) {
-//     return res.status(403).send({ message: "No token provided" });
-//   }
 
-//   verify(token, SECRET_KEY, (err, decoded) => {
-//     if (err) {
-//       return res.status(500).send({ message: "Invalid token" });
-//     }
-//     req.userId = decoded.id;
-//     next();
-//   });
-// }
 
 app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
@@ -142,24 +129,23 @@ app.get("/posts", (req, res) => {
 
   db.all(query, params, (err, rows) => {
     if (err) {
-      console.error("Database error:", err); // Логування помилки
+      console.error("Database error:", err); 
       return res
         .status(500)
-        .json({ message: "Database error", error: err.message }); // Повернення детальної помилки
+        .json({ message: "Database error", error: err.message });
     }
     res.status(200).json(rows);
   });
 });
 
 app.get('/post/:id', (req, res) => {
-  const { id } = req.params; // Get the id from the request parameters
+  const { id } = req.params;
 
-  // SQL query to fetch a post by id
   const query = 'SELECT * FROM posts WHERE id = ?';
 
   db.get(query, [id], (err, row) => {
     if (err) {
-      console.error('Database error:', err); // Log the error
+      console.error('Database error:', err); 
       return res.status(500).json({ message: 'Database error', error: err.message }); // Return detailed error
     }
 
@@ -172,56 +158,36 @@ app.get('/post/:id', (req, res) => {
 });
 
 
-// app.post("/posts", verifyToken, (req, res) => {
-//   const { title, content } = req.body;
-//   const query = "INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)";
 
-//   db.run(query, [title, content, req.userId], function (err) {
-//     if (err) {
-//       return res.status(500).send({ message: "Помилка при створенні поста" });
-//     }
-//     res.status(200).send({ id: this.lastID, message: "Пост створено" });
-//   });
-// });
+function verifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; 
 
-// app.get("/posts", (req, res) => {
-//   const query =
-//     "SELECT posts.id, posts.title, posts.content, users.username FROM posts INNER JOIN users ON posts.user_id = users.id";
+  if (!token) {
+    return res.status(403).send({ message: "No token provided" });
+  }
 
-//   db.all(query, [], (err, posts) => {
-//     if (err) {
-//       return res.status(500).send({ message: "Error while receiving posts" });
-//     }
-//     res.status(200).send(posts);
-//   });
-// });
+  verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(500).send({ message: "Invalid token" });
+    }
+    req.userId = decoded.id;
+    next();
+  });
+}
 
-// app.put("/posts/:id", verifyToken, (req, res) => {
-//   const { title, content } = req.body;
-//   const query =
-//     "UPDATE posts SET title = ?, content = ? WHERE id = ? AND user_id = ?";
+app.delete("/post/:id", verifyToken, (req, res) => {
+  const query = "DELETE FROM posts WHERE id = ?";
 
-//   db.run(query, [title, content, req.params.id, req.userId], function (err) {
-//     if (err || this.changes === 0) {
-//       return res
-//         .status(500)
-//         .send({ message: "Error editing or post not found" });
-//     }
-//     res.status(200).send({ message: "The post has been updated" });
-//   });
-// });
-
-// app.delete("/posts/:id", verifyToken, (req, res) => {
-//   const query = "DELETE FROM posts WHERE id = ? AND user_id = ?";
-
-//   db.run(query, [req.params.id, req.userId], function (err) {
-//     if (err || this.changes === 0) {
-//       return res.status(500).send({ message: "Error or post not found" });
-//     }
-//     res.status(200).send({ message: "The post has been deleted" });
-//   });
-// });
+  db.run(query, [req.params.id], function (err) {
+    if (err || this.changes === 0) {
+      return res.status(500).send({ message: "Error or post not found" });
+    }
+    res.status(200).send({ message: "The post has been deleted" });
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);
 });
+

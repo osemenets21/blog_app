@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export const AuthContext = createContext();
 
 export const AuthContexProvider = ({ children }) => {
+  const [message, setMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem("user")) || null
   );
@@ -75,7 +76,7 @@ export const AuthContexProvider = ({ children }) => {
   }, [currentUser]);
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, login, logout, message, setMessage }}>
       {children}
     </AuthContext.Provider>
   );

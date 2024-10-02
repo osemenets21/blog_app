@@ -6,6 +6,19 @@ $lightGreen: #b9e7e7;
   box-sizing: border-box;
 }
 
+.notification {
+  background-color: #4caf50;
+  color: white;
+  padding: 15px;
+  position: fixed;
+  top: 20px;
+  left: 20px; 
+  z-index: 1000;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0.9; 
+}
+
 .app {
   display: flex;
   justify-content: center;
