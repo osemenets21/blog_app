@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import moment from "moment";
 
 const Write = () => {
   const state = useLocation().state;
@@ -15,49 +15,72 @@ const Write = () => {
 
   const upload = async () => {
     try {
-      const formData = new FormData();
-      formData.append("file", file); 
-  
-      const response = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-  
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-  
-      const data = await response.json();
-      
-      return data.filename; 
-    } catch (err) {
-      console.log("Error uploading file:", err);
-    }
-  };
+        const formData = new FormData();
+        formData.append("file", file); 
 
-  const handleClick = async (e) => {
+        const response = await fetch("http://localhost:5000/upload", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            throw new Error(`Upload failed: ${errorMessage}`);
+        }
+
+        const data = await response.json();
+        return data.filename; 
+    } catch (err) {
+        console.log("Error uploading file:", err);
+    }
+};
+
+const handleClick = async (e) => {
     e.preventDefault();
-    const imgUrl = await upload(); //without URL only name
-    // try {
-    //   state
-    //     ? await axios.put(`/posts/${state.id}`, {
-    //         title,
-    //         desc: value,
-    //         cat,
-    //         img: file ? imgUrl : "",
-    //       })
-    //     : await axios.post(`/posts/`, {
-    //         title,
-    //         desc: value,
-    //         cat,
-    //         img: file ? imgUrl : "",
-    //         date: moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
-    //       });
-    //       navigate("/")
-    // } catch (err) {
-    //   console.log(err);
-    // }
-  };
+
+    if (!file || !title || !value || !cat) {
+        console.log("Missing required fields");
+        return; // Виходимо, якщо немає обов'язкових полів
+    }
+
+    const imgUrl = await upload(); 
+    const fullImgUrl = `http://localhost:5000/upload/${imgUrl}`;
+    console.log(fullImgUrl);
+
+    try {
+        const postData = {
+            title,
+            desc: value,
+            cat,
+            img: file ? fullImgUrl : "",
+            date: moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
+        };
+
+        if (state) {
+            await fetch(`http://localhost:5000/post/${state.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(postData),
+            });
+        } else {
+            await fetch("http://localhost:5000/posts", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(postData),
+            });
+        }
+
+        navigate("/"); // Перенаправлення після створення/оновлення поста
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+  
 
 
 return (

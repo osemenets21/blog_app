@@ -5,12 +5,13 @@ import pkg from "bcryptjs";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
-
+import path from "path";
 
 const { hashSync, compareSync } = pkg;
 const { sign, verify } = jwt;
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -23,7 +24,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-app.post("/api/upload", upload.single("file"), function (req, res) {
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+console.log("__dirname:", __dirname);
+
+app.use('/upload', express.static(path.join(__dirname, '../client/public/upload')));
+console.log(path.join(__dirname, '../client/public/upload'));
+
+app.post("/upload", upload.single("file"), function (req, res) {
   const file = req.file;
   if (!file) {
     return res.status(400).json({ message: "No file uploaded" });
@@ -32,7 +39,7 @@ app.post("/api/upload", upload.single("file"), function (req, res) {
 });
 
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = "your_secret_key";
+const SECRET_KEY = process.env.SECRET_KEY || "your_secret_key"; // Змінна середовища
 
 export const db = new sqlite3.Database("./database.db");
 
@@ -53,10 +60,9 @@ db.serialize(() => {
       desc TEXT,
       img TEXT,
       date TEXT,
-      uid INTEGER,
-      cat TEXT,
-      username TEXT,
-      FOREIGN KEY(uid) REFERENCES users(id)
+      cat TEXT
+      -- uid INTEGER, -- Якщо плануєте використовувати uid, вкажіть його
+      -- FOREIGN KEY(uid) REFERENCES users(id)
   )`,
     (err) => {
       if (err) {
@@ -68,25 +74,23 @@ db.serialize(() => {
   );
 });
 
-app.use(express.json());
-
-
-
+// Реєстрація користувача
 app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 8);
 
-  const query =
-    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+  const query = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
 
   db.run(query, [username, email, hashedPassword], function (err) {
     if (err) {
+      console.error("Database error:", err);
       return res.status(500).send({ message: "User already exists" });
     }
     res.status(200).send({ message: "User registered!" });
   });
 });
 
+// Логін користувача
 app.post("/login", (req, res) => {
   console.log("Request body:", req.body);
 
@@ -94,9 +98,7 @@ app.post("/login", (req, res) => {
 
   if (!username || !password) {
     console.log("Missing username or password");
-    return res
-      .status(400)
-      .json({ message: "Username and password are required" });
+    return res.status(400).json({ message: "Username and password are required" });
   }
 
   db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
@@ -109,8 +111,6 @@ app.post("/login", (req, res) => {
       console.log("User not found");
       return res.status(400).json({ message: "Invalid username or password" });
     }
-
-    console.log("Stored hashed password:", user.password);
 
     const isPasswordValid = bcrypt.compareSync(password, user.password);
 
@@ -130,19 +130,17 @@ app.post("/login", (req, res) => {
   });
 });
 
+// Вихід з системи
 app.post("/logout", (req, res) => {
   return res.status(200).json({ message: "Logout successful" });
 });
 
-export default app;
-
-app.get("/posts/", (req, res) => {
+// Отримання постів
+app.get("/posts", (req, res) => {
   const { cat } = req.query;
 
   let query = "SELECT * FROM posts";
   const params = [];
-
-  
 
   if (cat) {
     query += " WHERE cat = ?";
@@ -151,39 +149,80 @@ app.get("/posts/", (req, res) => {
 
   db.all(query, params, (err, rows) => {
     if (err) {
-      console.error("Database error:", err); 
-      return res
-        .status(500)
-        .json({ message: "Database error", error: err.message });
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database error", error: err.message });
     }
     res.status(200).json(rows);
   });
 });
 
-app.get('/post/:id', (req, res) => {
+// Отримання одного поста
+app.get("/post/:id", (req, res) => {
   const { id } = req.params;
 
-  const query = 'SELECT * FROM posts WHERE id = ?';
+  const query = "SELECT * FROM posts WHERE id = ?";
 
   db.get(query, [id], (err, row) => {
     if (err) {
-      console.error('Database error:', err); 
-      return res.status(500).json({ message: 'Database error', error: err.message }); 
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database error", error: err.message });
     }
 
     if (!row) {
-      return res.status(404).json({ message: 'Post not found' }); 
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).json(row); 
+    res.status(200).json(row);
   });
 });
 
+// Додавання нового поста
+app.post("/posts", (req, res) => {
+  const { title, desc, img, date, cat } = req.body;
 
+  const query = "INSERT INTO posts (title, desc, img, date, cat) VALUES (?, ?, ?, ?, ?)";
 
+  db.run(query, [title, desc, img, date, cat], function (err) {
+    if (err) {
+      console.error("Error inserting post:", err);
+      return res.status(500).json({ message: "Error creating post" });
+    }
+    res.status(201).json({ message: "Post created successfully", id: this.lastID });
+  });
+});
+
+// Оновлення поста
+app.put("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  const { title, desc, img, cat } = req.body;
+
+  const query = "UPDATE posts SET title = ?, desc = ?, img = ?, cat = ? WHERE id = ?";
+
+  db.run(query, [title, desc, img, cat, id], function (err) {
+    if (err) {
+      console.error("Error updating post:", err);
+      return res.status(500).json({ message: "Error updating post" });
+    }
+    res.status(200).json({ message: "Post updated successfully" });
+  });
+});
+
+// Видалення поста
+app.delete("/post/:id", (req, res) => {
+  const query = "DELETE FROM posts WHERE id = ?";
+
+  db.run(query, [req.params.id], function (err) {
+    if (err || this.changes === 0) {
+      return res.status(500).send({ message: "Error or post not found" });
+    }
+    res.status(200).send({ message: "The post has been deleted" });
+  });
+});
+
+// Функція перевірки токена
 function verifyToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; 
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     return res.status(403).send({ message: "No token provided" });
@@ -198,18 +237,7 @@ function verifyToken(req, res, next) {
   });
 }
 
-app.delete("/post/:id", verifyToken, (req, res) => {
-  const query = "DELETE FROM posts WHERE id = ?";
-
-  db.run(query, [req.params.id], function (err) {
-    if (err || this.changes === 0) {
-      return res.status(500).send({ message: "Error or post not found" });
-    }
-    res.status(200).send({ message: "The post has been deleted" });
-  });
-});
-
+// Запуск сервера
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);
 });
-
