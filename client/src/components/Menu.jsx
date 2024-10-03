@@ -29,7 +29,7 @@ const Menu = ({ cat, currentPostId }) => {
       <h1>Other posts you may like</h1>
       {posts.length > 0 ? (
         posts.map((post) => (
-          <Link className="link" to={`/post/${post.id}`}>
+          <Link className="link" to={`/post/${post.id}`} key={post.id}>
             <div className="post" key={post.id}>
             <img src={post.img} alt="post-img" />
             <h2>{post.title}</h2>

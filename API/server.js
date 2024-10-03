@@ -1,15 +1,35 @@
 import express from "express";
 import sqlite3 from "sqlite3";
 import cors from "cors";
-// import bodyParser from 'body-parser';
 import pkg from "bcryptjs";
 import bcrypt from "bcryptjs";
-const { hashSync, compareSync } = pkg;
 import jwt from "jsonwebtoken";
-const { sign, verify } = jwt;
+import multer from "multer";
 
+
+const { hashSync, compareSync } = pkg;
+const { sign, verify } = jwt;
 const app = express();
 app.use(cors());
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "../client/public/upload");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
+app.post("/api/upload", upload.single("file"), function (req, res) {
+  const file = req.file;
+  if (!file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+  res.status(200).json({ filename: file.filename }); 
+});
 
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = "your_secret_key";
@@ -121,7 +141,7 @@ app.get("/posts/", (req, res) => {
 
   let query = "SELECT * FROM posts";
   const params = [];
-  console.log("Category:", cat);
+
   
 
   if (cat) {
