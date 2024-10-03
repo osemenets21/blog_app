@@ -116,11 +116,13 @@ app.post("/logout", (req, res) => {
 
 export default app;
 
-app.get("/posts", (req, res) => {
+app.get("/posts/", (req, res) => {
   const { cat } = req.query;
 
   let query = "SELECT * FROM posts";
   const params = [];
+  console.log("Category:", cat);
+  
 
   if (cat) {
     query += " WHERE cat = ?";
@@ -146,14 +148,14 @@ app.get('/post/:id', (req, res) => {
   db.get(query, [id], (err, row) => {
     if (err) {
       console.error('Database error:', err); 
-      return res.status(500).json({ message: 'Database error', error: err.message }); // Return detailed error
+      return res.status(500).json({ message: 'Database error', error: err.message }); 
     }
 
     if (!row) {
-      return res.status(404).json({ message: 'Post not found' }); // Return 404 if no post is found
+      return res.status(404).json({ message: 'Post not found' }); 
     }
 
-    res.status(200).json(row); // Return the found post
+    res.status(200).json(row); 
   });
 });
 

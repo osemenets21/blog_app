@@ -27,7 +27,7 @@ const Menu = ({ cat, currentPostId }) => {
   return (
     <div className="menu">
       <h1>Other posts you may like</h1>
-      {posts.length > 0 ? ( // Додано перевірку на наявність постів
+      {posts.length > 0 ? (
         posts.map((post) => (
           <Link className="link" to={`/post/${post.id}`}>
             <div className="post" key={post.id}>
@@ -39,7 +39,7 @@ const Menu = ({ cat, currentPostId }) => {
           
         ))
       ) : (
-        <p>No other posts available.</p> // Повідомлення, якщо немає інших постів
+        <p>No other posts available.</p> 
       )}
     </div>
   );

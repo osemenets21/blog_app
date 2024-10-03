@@ -3,7 +3,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 const Write = () => {
-  const [value, setValue] = useState("");
+   const [value, setValue] = useState("");
 
   return (
     <div className="add">
