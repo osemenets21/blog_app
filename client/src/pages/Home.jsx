@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";  // Імпортуємо контекст
+import { AuthContext } from "../context/AuthContext";  
+import Notification from "../components/Notification";
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -43,9 +44,7 @@ const Home = () => {
   return (
     <div className="home">
       {message && ( 
-        <div className="notification">
-          <p>{message}</p>
-        </div>
+        <Notification message={message} />
       )}
       <div className="posts">
         {posts.map((post) => (

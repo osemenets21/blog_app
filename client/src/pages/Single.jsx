@@ -22,7 +22,7 @@ const Single = () => {
           throw new Error("Failed to fetch posts");
         }
         const data = await response.json();
-        setPost(data);
+        setPost(data);        
       } catch (error) {
         console.log(error);
       }
@@ -81,7 +81,7 @@ const Single = () => {
             </div>
             {currentUser?.username === post?.username && (
               <div className="edit">
-                <Link to={"/write?edit=2"}>
+                <Link to={"/write?edit=2"} state={post}>
                   <img src={Edit} alt="edit-img" />
                 </Link>
                 <img onClick={handleDelete} src={Delete} alt="delete-img" />

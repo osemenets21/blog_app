@@ -1,102 +1,113 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
+import { AuthContext } from "../context/AuthContext";
 
 const Write = () => {
   const state = useLocation().state;
-  const [value, setValue] = useState(state?.title || "");
-  const [title, setTitle] = useState(state?.desc || "");
+  const [desc, setValue] = useState(state?.desc || "");
+  const [title, setTitle] = useState(state?.title || "");
   const [file, setFile] = useState(null);
   const [cat, setCat] = useState(state?.cat || "");
 
   const navigate = useNavigate();
+  const { setMessage } = useContext(AuthContext);
 
   const upload = async () => {
     try {
-        const formData = new FormData();
-        formData.append("file", file); 
+      const formData = new FormData();
+      formData.append("file", file);
 
-        const response = await fetch("http://localhost:5000/upload", {
-            method: "POST",
-            body: formData,
-        });
+      const response = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-        if (!response.ok) {
-            const errorMessage = await response.text();
-            throw new Error(`Upload failed: ${errorMessage}`);
-        }
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(`Upload failed: ${errorMessage}`);
+      }
 
-        const data = await response.json();
-        return data.filename; 
+      const data = await response.json();
+      return data.filename;
     } catch (err) {
-        console.log("Error uploading file:", err);
+      console.log("Error uploading file:", err);
     }
-};
+  };
 
-const handleClick = async (e) => {
+  const handleClick = async (e) => {
     e.preventDefault();
 
-    if (!file || !title || !value || !cat) {
-        console.log("Missing required fields");
-        return; // Виходимо, якщо немає обов'язкових полів
+    const userFromLocalStor = JSON.parse(localStorage.getItem("user"));
+
+    if (!userFromLocalStor || !userFromLocalStor.token) {
+      console.log("Login first please");
+      
+      setMessage("Login first please");
+      return;
     }
 
-    const imgUrl = await upload(); 
+    if (!file || !title.trim() || !desc.trim() || !cat.trim()) {
+      alert("Missing required fields");
+      return;
+    }
+
+    const imgUrl = await upload();
     const fullImgUrl = `http://localhost:5000/upload/${imgUrl}`;
-    console.log(fullImgUrl);
+    const user = JSON.parse(localStorage.getItem("user"));
+    const username = user ? user.username : null;
 
     try {
-        const postData = {
-            title,
-            desc: value,
-            cat,
-            img: file ? fullImgUrl : "",
-            date: moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
-        };
+      const postData = {
+        title,
+        desc: desc,
+        cat,
+        img: file ? fullImgUrl : "",
+        date: moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
+        username: username,
+      };
 
-        if (state) {
-            await fetch(`http://localhost:5000/post/${state.id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(postData),
-            });
-        } else {
-            await fetch("http://localhost:5000/posts", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(postData),
-            });
-        }
-
-        navigate("/"); // Перенаправлення після створення/оновлення поста
+      if (state) {
+        await fetch(`http://localhost:5000/post/${state.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(postData),
+        });
+        setMessage("Post has been updated!");
+      } else {
+        await fetch("http://localhost:5000/posts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(postData),
+        });
+        setMessage("Post has been added!");
+      }
+      navigate("/");
     } catch (err) {
-        console.log(err);
+      console.log(err);
     }
-};
+  };
 
-  
-
-
-return (
+  return (
     <div className="add">
       <div className="content">
         <input
           type="text"
           placeholder="Title"
+          value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <div className="editorContainer">
-          <ReactQuill
+          <textarea
             className="editor"
-            theme="snow"
-            value={value}
-            onChange={setValue}
+            value={desc}
+            onChange={(e) => setValue(e.target.value)}
           />
         </div>
       </div>

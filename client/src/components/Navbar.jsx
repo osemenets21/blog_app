@@ -51,9 +51,9 @@ const Navbar = () => {
             </span>
           )}
           {currentUser ? (
-            <span onClick={logout}>Logout</span>
+            <span className="bg-green" onClick={logout}>Logout</span>
           ) : (
-            <Link className="link" to="/login">
+            <Link className="link bg-green" to="/login">
               Login
             </Link>
           )}

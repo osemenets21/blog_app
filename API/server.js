@@ -6,16 +6,19 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
+import { fileURLToPath } from 'url';
 
 const { hashSync, compareSync } = pkg;
 const { sign, verify } = jwt;
 const app = express();
 app.use(cors());
 app.use(express.json());
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "../client/public/upload");
+    cb(null, "./upload");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + file.originalname);
@@ -24,11 +27,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-console.log("__dirname:", __dirname);
+app.use('/upload', express.static(path.join(__dirname, './upload')));
 
-app.use('/upload', express.static(path.join(__dirname, '../client/public/upload')));
-console.log(path.join(__dirname, '../client/public/upload'));
 
 app.post("/upload", upload.single("file"), function (req, res) {
   const file = req.file;
@@ -60,9 +60,9 @@ db.serialize(() => {
       desc TEXT,
       img TEXT,
       date TEXT,
-      cat TEXT
-      -- uid INTEGER, -- Якщо плануєте використовувати uid, вкажіть його
-      -- FOREIGN KEY(uid) REFERENCES users(id)
+      cat TEXT,
+      username TEXT
+      
   )`,
     (err) => {
       if (err) {
@@ -126,7 +126,7 @@ app.post("/login", (req, res) => {
     );
 
     console.log("Login successful");
-    return res.status(200).json({ message: "Login successful", token: token });
+    return res.status(200).json({  token: token });
   });
 });
 
@@ -178,11 +178,11 @@ app.get("/post/:id", (req, res) => {
 
 // Додавання нового поста
 app.post("/posts", (req, res) => {
-  const { title, desc, img, date, cat } = req.body;
+  const { title, desc, img, date, cat, username } = req.body;
 
-  const query = "INSERT INTO posts (title, desc, img, date, cat) VALUES (?, ?, ?, ?, ?)";
+  const query = "INSERT INTO posts (title, desc, img, date, cat, username) VALUES (?, ?, ?, ?, ?, ?)";
 
-  db.run(query, [title, desc, img, date, cat], function (err) {
+  db.run(query, [title, desc, img, date, cat, username], function (err) {
     if (err) {
       console.error("Error inserting post:", err);
       return res.status(500).json({ message: "Error creating post" });
@@ -192,7 +192,7 @@ app.post("/posts", (req, res) => {
 });
 
 // Оновлення поста
-app.put("/posts/:id", (req, res) => {
+app.put("/post/:id", (req, res) => {
   const { id } = req.params;
   const { title, desc, img, cat } = req.body;
 
