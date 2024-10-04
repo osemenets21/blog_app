@@ -2,7 +2,6 @@ import { createContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext();
 
-
 export const AuthContexProvider = ({ children }) => {
   const [message, setMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(
@@ -22,8 +21,6 @@ export const AuthContexProvider = ({ children }) => {
       }),
     });
 
-    
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Login failed");
@@ -32,20 +29,19 @@ export const AuthContexProvider = ({ children }) => {
     const data = await response.json();
 
     localStorage.setItem(
-        "user",
-        JSON.stringify({
-          token: data.token,
-          username: inputs.username,
-          password: inputs.password
-        })
+      "user",
+      JSON.stringify({
+        token: data.token,
+        username: inputs.username,
+        password: inputs.password,
+      })
     );
-    
+
     setCurrentUser({
       token: data.token,
       username: inputs.username,
       password: inputs.password,
     });
-
   };
 
   const logout = async () => {
@@ -57,16 +53,15 @@ export const AuthContexProvider = ({ children }) => {
         },
         body: JSON.stringify({}),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to log out from the server");
       }
-  
+
       localStorage.removeItem("user");
       setCurrentUser(null);
-  
-      console.log("Logout successful");
       setMessage("Logout successful");
+
 
     } catch (error) {
       console.error("Logout failed:", error);

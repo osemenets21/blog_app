@@ -1,8 +1,9 @@
 import React, { useState, useContext } from "react";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { AuthContext } from "../context/AuthContext";
 
 const Write = () => {
@@ -44,7 +45,7 @@ const Write = () => {
 
     if (!userFromLocalStor || !userFromLocalStor.token) {
       console.log("Login first please");
-      
+
       setMessage("Login first please");
       return;
     }
@@ -114,9 +115,7 @@ const Write = () => {
       <div className="menu">
         <div className="item">
           <h1>Publish</h1>
-          <span>
-            <b>Status: </b> Draft
-          </span>
+
           <span>
             <b>Visibility: </b> Public
           </span>
@@ -128,10 +127,17 @@ const Write = () => {
             onChange={(e) => setFile(e.target.files[0])}
           />
           <label className="file" htmlFor="file">
+            <FontAwesomeIcon
+              icon={faCloudArrowUp}
+              style={{
+                color: "#74C0FC",
+                fontSize: "15px",
+                paddingRight: "5px",
+              }}
+            />
             Upload Image
           </label>
           <div className="buttons">
-            <button>Save as a draft</button>
             <button onClick={handleClick}>Publish</button>
           </div>
         </div>
