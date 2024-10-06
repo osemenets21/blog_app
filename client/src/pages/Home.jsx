@@ -30,14 +30,13 @@ const Home = () => {
     fetchData();
   }, [cat]);
 
-  // Таймер для автоматичного приховування повідомлення через 5 секунд
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
-        setMessage(""); // Очищаємо повідомлення через 5 секунд
+        setMessage("");
       }, 5000);
 
-      return () => clearTimeout(timer); // Очищуємо таймер, якщо компонент буде розмонтований
+      return () => clearTimeout(timer);
     }
   }, [message, setMessage]);
 

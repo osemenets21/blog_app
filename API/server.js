@@ -39,7 +39,7 @@ app.post("/upload", upload.single("file"), function (req, res) {
 });
 
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = process.env.SECRET_KEY || "your_secret_key"; // Змінна середовища
+const SECRET_KEY = process.env.SECRET_KEY || "your_secret_key"; 
 
 export const db = new sqlite3.Database("./database.db");
 
@@ -74,7 +74,7 @@ db.serialize(() => {
   );
 });
 
-// Реєстрація користувача
+
 app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 8);
@@ -90,7 +90,7 @@ app.post("/register", (req, res) => {
   });
 });
 
-// Логін користувача
+
 app.post("/login", (req, res) => {
   console.log("Request body:", req.body);
 
@@ -130,12 +130,12 @@ app.post("/login", (req, res) => {
   });
 });
 
-// Вихід з системи
+
 app.post("/logout", (req, res) => {
   return res.status(200).json({ message: "Logout successful" });
 });
 
-// Отримання постів
+
 app.get("/posts", (req, res) => {
   const { cat } = req.query;
 
@@ -156,7 +156,7 @@ app.get("/posts", (req, res) => {
   });
 });
 
-// Отримання одного поста
+
 app.get("/post/:id", (req, res) => {
   const { id } = req.params;
 
@@ -176,7 +176,7 @@ app.get("/post/:id", (req, res) => {
   });
 });
 
-// Додавання нового поста
+
 app.post("/posts", (req, res) => {
   const { title, desc, img, date, cat, username } = req.body;
 
@@ -191,7 +191,7 @@ app.post("/posts", (req, res) => {
   });
 });
 
-// Оновлення поста
+
 app.put("/post/:id", (req, res) => {
   const { id } = req.params;
   const { title, desc, img, cat } = req.body;
@@ -207,7 +207,7 @@ app.put("/post/:id", (req, res) => {
   });
 });
 
-// Видалення поста
+
 app.delete("/post/:id", (req, res) => {
   const query = "DELETE FROM posts WHERE id = ?";
 
@@ -219,7 +219,7 @@ app.delete("/post/:id", (req, res) => {
   });
 });
 
-// Функція перевірки токена
+
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -237,7 +237,7 @@ function verifyToken(req, res, next) {
   });
 }
 
-// Запуск сервера
+
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);
 });
