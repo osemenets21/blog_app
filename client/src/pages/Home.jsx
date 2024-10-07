@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";  
 import Notification from "../components/Notification";
+import fetchWithAuth from "../requestsWithAuth";
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -14,9 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/posts${cat ? `?cat=${cat}` : ""}`
-        );
+        const response = await fetchWithAuth(`http://localhost:5000/posts${cat ? `?cat=${cat}` : ""}`);
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }

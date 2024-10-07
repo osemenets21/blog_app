@@ -5,6 +5,7 @@ import moment from "moment";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { AuthContext } from "../context/AuthContext";
+import fetchWithAuth from "../requestsWithAuth";
 
 const Write = () => {
   const state = useLocation().state;
@@ -71,7 +72,7 @@ const Write = () => {
       };
 
       if (state) {
-        await fetch(`http://localhost:5000/post/${state.id}`, {
+        await fetchWithAuth(`http://localhost:5000/post/${state.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -80,7 +81,7 @@ const Write = () => {
         });
         setMessage("Post has been updated!");
       } else {
-        await fetch("http://localhost:5000/posts", {
+        await fetchWithAuth("http://localhost:5000/posts", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

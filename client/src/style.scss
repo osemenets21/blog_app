@@ -6,6 +6,17 @@ $lightGreen: #b9e7e7;
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; 
+}
+
+
 .notification {
   background-color: #4caf50;
   color: white;
@@ -21,9 +32,13 @@ $lightGreen: #b9e7e7;
 
 .app {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center; // Вирівнювання по горизонталі
+  flex-grow: 1;
+  justify-content: space-between;
   .container {
     width: 1024px;
+    
 
     .link {
       text-decoration: none;
@@ -143,7 +158,7 @@ $lightGreen: #b9e7e7;
     // FOOTER
 
     footer {
-      margin-top: 100px;
+      margin-top: 200px;
       padding: 20px;
       background-color: $lightGreen;
       display: flex;

@@ -27,6 +27,79 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);  // replace with your actual secret key
+    req.user = decoded;  // store the user data in the request object
+    next();  // pass control to the next middleware/route
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid token.' });
+  }
+};
+
+app.post("/register", (req, res) => {
+  const { username, email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 8);
+
+  const query = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+
+  db.run(query, [username, email, hashedPassword], function (err) {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).send({ message: "User already exists" });
+    }
+    res.status(200).send({ message: "User registered!" });
+  });
+});
+
+
+app.post("/login", (req, res) => {
+  console.log("Request body:", req.body);
+
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    console.log("Missing username or password");
+    return res.status(400).json({ message: "Username and password are required" });
+  }
+
+  db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
+    if (err) {
+      console.log("Database error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (!user) {
+      console.log("User not found");
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+
+    if (!isPasswordValid) {
+      console.log("Invalid password");
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    console.log("Login successful");
+    return res.status(200).json({  token: token });
+  });
+});
+
+app.use(authMiddleware);
+
 app.use('/upload', express.static(path.join(__dirname, './upload')));
 
 
@@ -72,62 +145,6 @@ db.serialize(() => {
       }
     }
   );
-});
-
-
-app.post("/register", (req, res) => {
-  const { username, email, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 8);
-
-  const query = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
-
-  db.run(query, [username, email, hashedPassword], function (err) {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).send({ message: "User already exists" });
-    }
-    res.status(200).send({ message: "User registered!" });
-  });
-});
-
-
-app.post("/login", (req, res) => {
-  console.log("Request body:", req.body);
-
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    console.log("Missing username or password");
-    return res.status(400).json({ message: "Username and password are required" });
-  }
-
-  db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
-    if (err) {
-      console.log("Database error:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
-
-    if (!user) {
-      console.log("User not found");
-      return res.status(400).json({ message: "Invalid username or password" });
-    }
-
-    const isPasswordValid = bcrypt.compareSync(password, user.password);
-
-    if (!isPasswordValid) {
-      console.log("Invalid password");
-      return res.status(400).json({ message: "Invalid username or password" });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    console.log("Login successful");
-    return res.status(200).json({  token: token });
-  });
 });
 
 
