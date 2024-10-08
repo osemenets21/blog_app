@@ -17,6 +17,28 @@ const Write = () => {
   const navigate = useNavigate();
   const { setMessage } = useContext(AuthContext);
 
+  // const upload = async () => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+
+  //     const response = await fetch("http://localhost:5000/upload", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorMessage = await response.text();
+  //       throw new Error(`Upload failed: ${errorMessage}`);
+  //     }
+
+  //     const data = await response.json();
+  //     return data.filename;
+  //   } catch (err) {
+  //     console.log("Error uploading file:", err);
+  //   }
+  // };
+
   const upload = async () => {
     try {
       const formData = new FormData();

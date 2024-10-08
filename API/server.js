@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 const { hashSync, compareSync } = pkg;
 const { sign, verify } = jwt;
@@ -28,18 +28,18 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 const authMiddleware = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return res.status(401).json({ error: 'Access denied. No token provided.' });
+    return res.status(401).json({ error: "Access denied. No token provided." });
   }
 
   try {
-    const decoded = jwt.verify(token, SECRET_KEY);  // replace with your actual secret key
-    req.user = decoded;  // store the user data in the request object
-    next();  // pass control to the next middleware/route
+    const decoded = jwt.verify(token, SECRET_KEY); // replace with your actual secret key
+    req.user = decoded; // store the user data in the request object
+    next(); // pass control to the next middleware/route
   } catch (error) {
-    res.status(400).json({ error: 'Invalid token.' });
+    res.status(400).json({ error: "Invalid token." });
   }
 };
 
@@ -47,7 +47,8 @@ app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 8);
 
-  const query = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+  const query =
+    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
 
   db.run(query, [username, email, hashedPassword], function (err) {
     if (err) {
@@ -58,7 +59,6 @@ app.post("/register", (req, res) => {
   });
 });
 
-
 app.post("/login", (req, res) => {
   console.log("Request body:", req.body);
 
@@ -66,7 +66,9 @@ app.post("/login", (req, res) => {
 
   if (!username || !password) {
     console.log("Missing username or password");
-    return res.status(400).json({ message: "Username and password are required" });
+    return res
+      .status(400)
+      .json({ message: "Username and password are required" });
   }
 
   db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
@@ -94,7 +96,7 @@ app.post("/login", (req, res) => {
     );
 
     console.log("Login successful");
-    return res.status(200).json({  token: token });
+    return res.status(200).json({ token: token });
   });
 });
 
@@ -112,12 +114,13 @@ app.get("/posts", (req, res) => {
   db.all(query, params, (err, rows) => {
     if (err) {
       console.error("Database error:", err);
-      return res.status(500).json({ message: "Database error", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Database error", error: err.message });
     }
     res.status(200).json(rows);
   });
 });
-
 
 app.get("/post/:id", (req, res) => {
   const { id } = req.params;
@@ -127,7 +130,9 @@ app.get("/post/:id", (req, res) => {
   db.get(query, [id], (err, row) => {
     if (err) {
       console.error("Database error:", err);
-      return res.status(500).json({ message: "Database error", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Database error", error: err.message });
     }
 
     if (!row) {
@@ -142,23 +147,20 @@ app.post("/logout", (req, res) => {
   return res.status(200).json({ message: "Logout successful" });
 });
 
-
-
-app.use(authMiddleware);
-
-app.use('/upload', express.static(path.join(__dirname, './upload')));
-
+app.use("/upload", express.static(path.join(__dirname, "./upload")));
 
 app.post("/upload", upload.single("file"), function (req, res) {
   const file = req.file;
   if (!file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
-  res.status(200).json({ filename: file.filename }); 
+  res.status(200).json({ filename: file.filename });
 });
 
+app.use(authMiddleware);
+
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = process.env.SECRET_KEY || "your_secret_key"; 
+const SECRET_KEY = process.env.SECRET_KEY || "your_secret_key";
 
 export const db = new sqlite3.Database("./database.db");
 
@@ -193,27 +195,29 @@ db.serialize(() => {
   );
 });
 
-
 app.post("/posts", (req, res) => {
   const { title, desc, img, date, cat, username } = req.body;
 
-  const query = "INSERT INTO posts (title, desc, img, date, cat, username) VALUES (?, ?, ?, ?, ?, ?)";
+  const query =
+    "INSERT INTO posts (title, desc, img, date, cat, username) VALUES (?, ?, ?, ?, ?, ?)";
 
   db.run(query, [title, desc, img, date, cat, username], function (err) {
     if (err) {
       console.error("Error inserting post:", err);
       return res.status(500).json({ message: "Error creating post" });
     }
-    res.status(201).json({ message: "Post created successfully", id: this.lastID });
+    res
+      .status(201)
+      .json({ message: "Post created successfully", id: this.lastID });
   });
 });
-
 
 app.put("/post/:id", (req, res) => {
   const { id } = req.params;
   const { title, desc, img, cat } = req.body;
 
-  const query = "UPDATE posts SET title = ?, desc = ?, img = ?, cat = ? WHERE id = ?";
+  const query =
+    "UPDATE posts SET title = ?, desc = ?, img = ?, cat = ? WHERE id = ?";
 
   db.run(query, [title, desc, img, cat, id], function (err) {
     if (err) {
@@ -223,7 +227,6 @@ app.put("/post/:id", (req, res) => {
     res.status(200).json({ message: "Post updated successfully" });
   });
 });
-
 
 app.delete("/post/:id", (req, res) => {
   const query = "DELETE FROM posts WHERE id = ?";
@@ -235,7 +238,6 @@ app.delete("/post/:id", (req, res) => {
     res.status(200).send({ message: "The post has been deleted" });
   });
 });
-
 
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
@@ -253,7 +255,6 @@ function verifyToken(req, res, next) {
     next();
   });
 }
-
 
 app.listen(PORT, () => {
   console.log(`The server is started on the port - ${PORT}`);

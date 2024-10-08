@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import fetchWithAuth from "../requestsWithAuth";
 
 export const AuthContext = createContext();
 
@@ -46,12 +47,9 @@ export const AuthContexProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const response = await fetch("http://localhost:5000/logout", {
+      const response = await fetchWithAuth("http://localhost:5000/logout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
+        body: JSON.stringify({}), 
       });
 
       if (!response.ok) {
@@ -61,7 +59,6 @@ export const AuthContexProvider = ({ children }) => {
       localStorage.removeItem("user");
       setCurrentUser(null);
       setMessage("Logout successful");
-
 
     } catch (error) {
       console.error("Logout failed:", error);
