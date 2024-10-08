@@ -98,6 +98,52 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.get("/posts", (req, res) => {
+  const { cat } = req.query;
+
+  let query = "SELECT * FROM posts";
+  const params = [];
+
+  if (cat) {
+    query += " WHERE cat = ?";
+    params.push(cat);
+  }
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database error", error: err.message });
+    }
+    res.status(200).json(rows);
+  });
+});
+
+
+app.get("/post/:id", (req, res) => {
+  const { id } = req.params;
+
+  const query = "SELECT * FROM posts WHERE id = ?";
+
+  db.get(query, [id], (err, row) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database error", error: err.message });
+    }
+
+    if (!row) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json(row);
+  });
+});
+
+app.post("/logout", (req, res) => {
+  return res.status(200).json({ message: "Logout successful" });
+});
+
+
+
 app.use(authMiddleware);
 
 app.use('/upload', express.static(path.join(__dirname, './upload')));
@@ -145,52 +191,6 @@ db.serialize(() => {
       }
     }
   );
-});
-
-
-app.post("/logout", (req, res) => {
-  return res.status(200).json({ message: "Logout successful" });
-});
-
-
-app.get("/posts", (req, res) => {
-  const { cat } = req.query;
-
-  let query = "SELECT * FROM posts";
-  const params = [];
-
-  if (cat) {
-    query += " WHERE cat = ?";
-    params.push(cat);
-  }
-
-  db.all(query, params, (err, rows) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database error", error: err.message });
-    }
-    res.status(200).json(rows);
-  });
-});
-
-
-app.get("/post/:id", (req, res) => {
-  const { id } = req.params;
-
-  const query = "SELECT * FROM posts WHERE id = ?";
-
-  db.get(query, [id], (err, row) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database error", error: err.message });
-    }
-
-    if (!row) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    res.status(200).json(row);
-  });
 });
 
 

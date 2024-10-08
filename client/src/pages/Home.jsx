@@ -15,7 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetchWithAuth(`http://localhost:5000/posts${cat ? `?cat=${cat}` : ""}`);
+        const response = await fetch(`http://localhost:5000/posts${cat ? `?cat=${cat}` : ""}`);
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
