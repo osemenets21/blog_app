@@ -13,7 +13,7 @@ The **Blog App** is a full-stack web application designed to let users create, e
 
 - **Frontend**: React, React Router, React Quill, Sass
 - **Backend**: Express, SQLite3, bcryptjs, multer, JWT, CORS
-- **Database**: MySQL (mysql2)
+- **Database**: SQLite
 
 ## Setup Instructions
 
@@ -36,7 +36,7 @@ The **Blog App** is a full-stack web application designed to let users create, e
    npm start
 
 ## Database Configuration
-   Ensure MySQL is installed and running. Modify the database configuration file as needed to connect to your local MySQL instance.
+   Ensure SQLite3 is installed and running. Modify the database configuration file as needed to connect to your local SQLite instance.
    
    
    
