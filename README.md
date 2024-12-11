@@ -25,7 +25,7 @@ The **Blog App** is a full-stack web application designed to let users create, e
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/blog-app.git
+   git clone https://github.com/osemenets21/blog-app.git
    cd blog-app
 
 ## Running the Application
